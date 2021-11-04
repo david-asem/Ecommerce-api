@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
-//const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 
 const UserSchema = new mongoose.Schema(
   {
@@ -48,17 +48,19 @@ UserSchema.pre("save", async function (next) {
    }
  });
 
-// //compare db password with given password
-// UserSchema.methods.matchPasswords = async function(password){
-//   return await bcrypt.compare(password, this.password)
-// };
+// compare db password with given password
+ UserSchema.methods.matchPasswords = async function(password){
+ return await bcrypt.compare(password, this.password)
+ };
 
-// //create token
-// UserSchema.methods.getSignedToken = async function () {
-//   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-//     expiresIn: process.env.JWT_EXPIRE_TIME,
-//   });
-// };
+//create token
+UserSchema.methods.getSignedToken = async()=> {
+  const accessToken = jwt.sign({ id: this._id, isAdmin:this.isAdmin }, process.env.JWT_SECRET, {
+ expiresIn: process.env.JWT_EXPIRE_TIME,
+  });
+  
+  return accessToken;
+ };
 
 // //get resetpassword token
 // UserSchema.methods.getResetPasswordToken = async function () {
