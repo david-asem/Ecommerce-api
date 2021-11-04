@@ -1,4 +1,4 @@
-//const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 //const jwt = require('jsonwebtoken');
@@ -36,17 +36,17 @@ const UserSchema = new mongoose.Schema(
 );
 
 //before a user is saved.
-// UserSchema.pre("save", async function (next) {
-//   let salt;
-//   if (!this.isModified("password")) {
-//     next();
-//   } else {
-//     salt = await bcrypt.genSalt(10);
-//     this.password = await bcrypt.hash(this.password,
-//       salt);
-//     next();
-//   }
-// });
+UserSchema.pre("save", async function (next) {
+    let salt;
+    if (!this.isModified("password")) {
+     next();
+   } else {
+     salt = await bcrypt.genSalt(10);
+     this.password = await bcrypt.hash(this.password,
+       salt);
+     next();
+   }
+ });
 
 // //compare db password with given password
 // UserSchema.methods.matchPasswords = async function(password){
