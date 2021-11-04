@@ -1,7 +1,6 @@
 const express = require('express');
 //const cors = require('cors');
-const path = require('path');
-const userRoute = require('./routes/userRoute');
+const userAuth = require('./routes/userAuth');
 
 //JSON parsing middleware
 const app = express();
@@ -9,6 +8,6 @@ const app = express();
 
 app.use(express.json());
 
-app.use('/api/v1/user', userRoute);
+app.use('/api/v1/', userAuth);
 
 module.exports = app;
