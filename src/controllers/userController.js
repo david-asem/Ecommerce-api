@@ -75,7 +75,7 @@ const sign_in = async (req, res, next) => {
           });
         } else {
           
-          const { password, _id, createdAt, updatedAt, __v, ...otherDetails } = user._doc;
+          const { password, _id, createdAt, updatedAt, __v, ...userDetails } = user._doc;
           return sendToken(user, "login success", 200, res);
           
         }
@@ -111,6 +111,7 @@ const updateUserProfile = async (req, res, next) => {
   )
 }
 
+//delete user
 const deleteUser = async (req, res, next) => {
   try {
     await User.findByIdAndDelete(req.params.id);
@@ -122,7 +123,74 @@ const deleteUser = async (req, res, next) => {
     res.status(500).json({error:true, message:'there was an error'})
   }
 }
+
+
+
+//get user by id
+const findUser = async (req, res, next) => {
   
+  try {
+    const user = await User.findById(req.params.id);
+    const { password, _id, createdAt, updatedAt, __v, ...userDetails } = user._doc;
+    return res.status(200).json({
+      userDetails,
+      success: true,
+    })
+  } catch (error) {
+    res.status(500).json({error:true, message:'there was an error'})
+  }
+}
+  
+
+//get all users 
+const findUsers = async (req, res) => {
+  const query = req.query.new;
+  
+  try {
+    const users = query ? await User.find({}).sort({_id: -1}).limit(5): await User.find();
+    
+    return res.status(200).json({
+      users,
+      success: true,
+    })
+  } catch (error) {
+    res.status(500).json(
+      {
+        error: true,
+        message: 'there was an error'
+      })
+  }
+}
+
+
+//get user stats
+
+const userStats = async (req, res) => {
+  const date = new Date();
+  const lastYear = new Date(date.setFullYear(date.getFullYear() - 1));
+
+  try {
+    const data = await User.aggregate([
+      { $match: { createdAt: { $gte: lastYear } } },
+      {
+        $project: {
+          month: { $month: "$createdAt" },
+        },
+      },
+      {
+        $group: {
+          _id: "$month",
+          total: { $sum: 1 },
+        },
+      },
+    ]);
+    res.status(200).json(data)
+  } catch (err) {
+    res.status(500).json(err);
+  }
+}
+
+
 
 const sendToken = async(user, message, statusCode, res)=> {
   const accessToken = await user.getSignedToken();
@@ -139,4 +207,7 @@ module.exports = {
   sign_in,
   updateUserProfile,
   deleteUser,
+  findUser,
+  findUsers,
+  userStats,
 };

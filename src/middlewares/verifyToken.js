@@ -4,9 +4,8 @@ const User = require('../models/User');
 
 async function verifyToken(req, res, next) {
   let token;
-
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
+     token = req.headers.authorization.split(' ')[1];
   }
 
   if (!token) {
@@ -16,12 +15,13 @@ async function verifyToken(req, res, next) {
     });
   } else {
     try {
-      jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
         if (err) {
           return res.status(403).json({ error: true, message: 'Token is invalid' });
           
         }
         else {
+          user = await User.findOne(user);
         req.user = user;
         next();
         }
@@ -37,10 +37,10 @@ async function verifyToken(req, res, next) {
 
 const verifyTokenAndAuthorization = (req, res, next) => {
   verifyToken(req, res, () => {
-    if (req.params.id === req.user._id  || req.user.isAdmin) {
+    if (req.user._id === req.params.id  || req.user.isAdmin) {
       next();
     } else {
-      return res.status(403).json("You are not alowed to do that!");
+      return res.status(403).json("Not allowed to do that!");
     }
   });
 };
@@ -48,10 +48,10 @@ const verifyTokenAndAuthorization = (req, res, next) => {
 
 const verifyTokenAndAdmin = (req, res, next) => {
   verifyToken(req, res, () => {
-    if (req.user.isAdmin) {
+    if (!req.user.isAdmin) {
       next();
     } else {
-      res.status(403).json("You are not alowed to do that!");
+      res.status(403).json("You are not allowed to do that!");
     }
   });
 };
