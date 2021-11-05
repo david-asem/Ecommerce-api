@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { validationResult } = require("express-validator");
-const ErrorHandler=require('../services/errorHandler')
+const ErrorHandler = require('../services/errorHandler');
+const { verifyTokenAndAuthorization, verifyToken } = require('../middlewares/verifyToken');
 
 //bunch of functions
 //Signup function
@@ -85,6 +86,43 @@ const sign_in = async (req, res, next) => {
   }
 }
 
+//update user
+
+const updateUserProfile = async (req, res, next) => {
+  verifyTokenAndAuthorization(req, res, async () => {
+    if (req.body.password) {
+      req.body.password = await User.hashPassword(req.body.password).toString();
+    }
+    try {
+      const updatedUser = await User.findByIdAndUpdate(req.body.id, {
+        $set: req.body
+      }, { new: true })
+        
+      return res.status(200).json(updatedUser)
+    } catch (error) {
+      return res.status(500).json({
+        error: true,
+        message: 'something went wrong',
+      })
+    }
+      
+
+  }
+  )
+}
+
+const deleteUser = async (req, res, next) => {
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    return res.status(200).json({
+      success: true,
+      message:'user deleted',
+    })
+  } catch (error) {
+    res.status(500).json({error:true, message:'there was an error'})
+  }
+}
+  
 
 const sendToken = async(user, message, statusCode, res)=> {
   const accessToken = await user.getSignedToken();
@@ -99,4 +137,6 @@ const sendToken = async(user, message, statusCode, res)=> {
 module.exports = {
   sign_up,
   sign_in,
+  updateUserProfile,
+  deleteUser,
 };

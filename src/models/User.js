@@ -46,7 +46,22 @@ UserSchema.pre("save", async function (next) {
        salt);
      next();
    }
- });
+});
+ 
+
+UserSchema.methods.hashPassword = async function (password) {
+  let salt;
+  if (!this.isModified("password")) {
+    next();
+  } else {
+    salt = await bcrypt.genSalt(10);
+    return password = await bcrypt.hash(this.password,
+      salt);
+     
+  }
+}
+
+
 
 // compare db password with given password
  UserSchema.methods.matchPasswords = async function(password){
