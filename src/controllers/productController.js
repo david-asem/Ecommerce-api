@@ -5,20 +5,24 @@ const {
   verifyTokenAndAdmin,
 } = require("../middlewares/verifyToken");
 
-const {validProduct}=require("../middlewares/productValidation");
+
 //CREATE product
 
- async function createProduct(req, res) {
-  const newProduct = new Product(req.body);
-
-   try {
-     if (validProduct) {
-       return res.status(400).validProduct().message;
-    }
+async function createProduct(req, res, next) {
+  if (!req.body.product_title || !req.body.product_desc || !req.body.product_price || !req.body.product_img || !req.body.categories) {
+    return res.status(400).json({
+      error: true,
+      message: 'Missing required product info',
+    });
+  }
+  else {
+    try {
+     const newProduct = new Product(req.body);
     const savedProduct = await newProduct.save();
     return res.status(200).json(savedProduct);
   } catch (err) {
     res.status(500).json(err);
+  }
   }
 };
 
